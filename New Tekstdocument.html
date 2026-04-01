@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Dräger WorkLog Pro v9.1</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <style>
+        :root {
+            --d-navy: #003366; --d-blue: #005eb8; --d-sky: #00a9e0;
+            --bg-body: #f2f4f7; --bg-card: #ffffff; --bg-inner: #f8fafc;
+            --text-main: #1e293b; --text-muted: #64748b;
+            --border-ui: #e2e8f0; --color-err: #ef4444; --color-ok: #10b981;
+            --safe-top: env(safe-area-inset-top); --safe-bottom: env(safe-area-inset-bottom);
+        }
+
+        body.dark-mode {
+            --bg-body: #0f172a; --bg-card: #1e293b; --bg-inner: #0f172a;
+            --text-main: #f1f5f9; --text-muted: #94a3b8; --border-ui: #334155;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
+        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg-body); color: var(--text-main); overflow-x: hidden; }
+
+        .app-container { padding: calc(20px + var(--safe-top)) 20px calc(110px + var(--safe-bottom)) 20px; max-width: 950px; margin: 0 auto; display: none; }
+        
+        .ui-card { 
+            background: var(--bg-card); border-radius: 24px; padding: 22px; margin-bottom: 20px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid var(--border-ui); 
+        }
+
+        label { display: block; margin-bottom: 6px; font-weight: 800; font-size: 10px; color: var(--d-blue); text-transform: uppercase; letter-spacing: 1px; }
+
+        input, select, textarea { 
+            width: 100%; padding: 14px; border: 2px solid var(--border-ui); border-radius: 12px; 
+            font-size: 15px; margin-bottom: 12px; background: var(--bg-card); color: var(--text-main); font-weight: 600;
+        }
+
+        .btn-main { 
+            width: 100%; background: linear-gradient(135deg, var(--d-navy), var(--d-blue)); 
+            color: white; padding: 16px; border: none; border-radius: 18px; font-weight: 800; font-size: 13px; text-transform: uppercase;
+        }
+
+        .btn-pdf { background: #e11d48; color: white; padding: 14px; border-radius: 14px; border: none; font-weight: 700; width: 100%; margin-top: 15px; cursor: pointer; }
+
+        .filter-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+        .data-table-container { overflow-x: auto; margin-top: 10px; border-radius: 12px; border: 1px solid var(--border-ui); }
+        table { width: 100%; border-collapse: collapse; background: var(--bg-card); font-size: 11px; }
+        th { background: var(--bg-inner); padding: 10px; text-align: left; color: var(--d-blue); font-weight: 800; border-bottom: 2px solid var(--border-ui); }
+        td { padding: 10px; border-bottom: 1px solid var(--border-ui); color: var(--text-main); }
+
+        .bottom-nav { 
+            display: flex; position: fixed; bottom: 0; left: 0; right: 0; 
+            background: var(--bg-card); padding: 12px 12px calc(12px + var(--safe-bottom)) 12px; 
+            border-top: 1px solid var(--border-ui); z-index: 1000;
+        }
+        .nav-item { flex: 1; border: none; background: none; font-size: 10px; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .nav-item.active { color: var(--d-blue); font-weight: 800; }
+
+        .stat-card { background: var(--bg-inner); padding: 15px; border-radius: 20px; text-align: center; border: 2px solid var(--d-blue); width: 100%; margin-bottom: 15px; }
+        .part-row { display: grid; grid-template-columns: 1fr 80px 40px; gap: 10px; margin-bottom: 10px; align-items: center; }
+
+        .admin-section-title { font-size: 12px; color: var(--d-navy); margin: 20px 0 10px 0; border-bottom: 2px solid var(--d-sky); display: inline-block; padding-bottom: 4px; }
+        .lang-switch { background: rgba(0,0,0,0.05); padding: 5px 10px; border-radius: 10px; cursor: pointer; font-size: 18px; border: none; }
+    </style>
+</head>
+<body onload="initSystem()">
+
+    <div id="auth-gate" style="position:fixed; inset:0; background:var(--bg-body); z-index:2000; display:flex; align-items:center; justify-content:center;">
+        <div class="ui-card" style="width:90%; max-width:380px; text-align:center;">
+            <h1 style="font-size:2.5em; margin-bottom:20px; color:var(--d-navy)">Dräger</h1>
+            <input type="text" id="auth-id" placeholder="User / Gebruiker">
+            <input type="password" id="auth-pin" maxlength="4" placeholder="PIN" inputmode="numeric">
+            <button class="btn-main" onclick="processLogin()">LOGIN</button>
+        </div>
+    </div>
+
+    <div class="app-container" id="app-viewport">
+        <div id="header" style="display:flex; justify-content:space-between; margin-bottom:15px; align-items:center;">
+            <h2 style="color:var(--d-navy)">Dräger WorkLog</h2>
+            <div style="display:flex; gap:10px; align-items:center;">
+                <button class="lang-switch" onclick="toggleLang()"><span id="lang-flag">🇫🇷</span></button>
+                <button onclick="toggleDarkMode()" style="background:none; border:none; font-size:20px;">🌙</button>
+            </div>
+        </div>
+
+        <div id="section-saisie" class="app-view-block">
+            <div class="ui-card">
+                <label data-t="l_date_client">Date & Client</label>
+                <input type="date" id="f-int-date">
+                <select id="f-int-client"><option value="">-- Client --</option></select>
+                
+                <div style="display:flex; gap:10px;">
+                    <div style="flex:1;"><label data-t="l_start">Début</label><input type="time" id="f-int-start" value="08:00"></div>
+                    <div style="flex:1;"><label data-t="l_end">Fin</label><input type="time" id="f-int-end" value="16:00"></div>
+                </div>
+
+                <label data-t="l_devices">Matériel entretenu</label>
+                <input type="number" id="f-int-devices" placeholder="0">
+
+                <label data-t="l_parts">Pièces remplacées</label>
+                <div id="parts-container"></div>
+                <button onclick="addPartRow()" style="background:none; border:2px dashed var(--border-ui); width:100%; padding:12px; border-radius:14px; color:var(--d-blue); font-weight:700; margin-bottom:15px;" data-t="btn_add_part">+ Ajouter article</button>
+                
+                <textarea id="f-int-notes" placeholder="Notes..."></textarea>
+                <button class="btn-main" onclick="saveIntervention()" data-t="btn_save">Enregistrer Rapport</button>
+            </div>
+        </div>
+
+        <div id="section-registre" class="app-view-block" style="display:none;">
+            <div class="ui-card" id="export-area">
+                <div class="filter-grid">
+                    <select id="filter-month" onchange="applyFilters()"></select>
+                    <select id="filter-year" onchange="applyFilters()"></select>
+                </div>
+                <select id="filter-client" onchange="applyFilters()" style="margin-bottom:15px;">
+                    <option value="ALL" data-t="opt_all_clients">-- Tous les clients --</option>
+                </select>
+
+                <div class="stat-card">
+                    <label data-t="l_total_hours">Heures sur la période</label>
+                    <b id="val-stat-hours" style="font-size:24px; color:var(--d-navy);">0h00</b>
+                </div>
+
+                <h3 style="font-size:13px; color:var(--d-navy); margin-bottom:8px;" data-t="h_journal">📋 Journal d'activités</h3>
+                <div class="data-table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th data-t="th_date">Date</th>
+                                <th data-t="th_client">Client</th>
+                                <th data-t="th_hours">Heures</th>
+                                <th data-t="th_dur">Durée</th>
+                                <th data-t="th_app">App.</th>
+                                <th class="no-pdf">X</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-interventions-body"></tbody>
+                    </table>
+                </div>
+
+                <h3 style="font-size:13px; color:var(--d-navy); margin:25px 0 8px 0;" data-t="h_parts">🔧 Pièces utilisées</h3>
+                <div class="data-table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th data-t="th_date">Date</th>
+                                <th data-t="th_client">Client</th>
+                                <th data-t="th_ref">Référence</th>
+                                <th data-t="th_qty">Qté</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-parts-body"></tbody>
+                    </table>
+                </div>
+
+                <button class="btn-pdf" onclick="exportToPDF()" data-t="btn_pdf">📄 Exporter en PDF</button>
+            </div>
+        </div>
+
+        <div id="section-admin" class="app-view-block" style="display:none;">
+            <div class="ui-card">
+                <h3 style="font-size:16px; color:var(--d-navy);" data-t="h_admin">Administration</h3>
+                
+                <div class="admin-section-title" data-t="l_new_client">Nouveau Client</div>
+                <div style="display:flex; gap:8px;">
+                    <input type="text" id="admin-new-client" placeholder="Nom">
+                    <button onclick="adminAddClient()" class="btn-main" style="width:auto; padding:0 20px;">+</button>
+                </div>
+
+                <div class="admin-section-title" data-t="h_parts_cat">Catalogue Articles</div>
+                <div style="background:var(--bg-inner); padding:15px; border-radius:15px; border:1px solid var(--border-ui);">
+                    <input type="text" id="cat-new-ref" placeholder="Réf">
+                    <input type="text" id="cat-new-label" placeholder="Libellé">
+                    <button onclick="adminAddPart()" class="btn-main" style="background:var(--color-ok);" data-t="btn_add">Ajouter</button>
+                    <div class="data-table-container" style="max-height:150px;">
+                        <table><tbody id="admin-parts-list"></tbody></table>
+                    </div>
+                </div>
+
+                <div class="admin-section-title" data-t="h_team">Membres de l'équipe</div>
+                <div style="background:var(--bg-inner); padding:15px; border-radius:15px; border:1px solid var(--border-ui);">
+                    <input type="text" id="user-new-id" placeholder="Nom">
+                    <input type="password" id="user-new-pin" maxlength="4" placeholder="PIN">
+                    <select id="user-new-lang">
+                        <option value="fr">Français</option>
+                        <option value="nl">Nederlands</option>
+                    </select>
+                    <select id="user-new-role">
+                        <option value="user">User</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                    <button onclick="adminAddUser()" class="btn-main" data-t="btn_create">Créer</button>
+                    <div class="data-table-container">
+                        <table><tbody id="admin-users-list"></tbody></table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <datalist id="catalog-parts"></datalist>
+
+    <nav class="bottom-nav">
+        <button class="nav-item active" onclick="showTab('saisie', this)"><i>📝</i><span data-t="nav_saisie">Saisie</span></button>
+        <button class="nav-item" onclick="showTab('registre', this)"><i>📊</i><span data-t="nav_table">Tableau</span></button>
+        <button class="nav-item" id="admin-nav" style="display:none;" onclick="showTab('admin', this)"><i>🛡️</i><span>Admin</span></button>
+    </nav>
+
+    <script>
+        const FIREBASE_CONFIG = { 
+            apiKey: "AIzaSyBPC6cJgFwBrSOppxE_kQDA2gs1ioEvGCw", 
+            authDomain: "worklog-fc54b.firebaseapp.com", 
+            databaseURL: "https://worklog-fc54b-default-rtdb.europe-west1.firebasedatabase.app/", 
+            projectId: "worklog-fc54b" 
+        };
+        firebase.initializeApp(FIREBASE_CONFIG);
+        const db = firebase.database();
+
+        const I18N = {
+            fr: {
+                l_date_client: "Date & Client", l_start: "Début", l_end: "Fin", l_devices: "Matériel entretenu", l_parts: "Pièces remplacées",
+                btn_add_part: "+ Ajouter article", btn_save: "Enregistrer Rapport", opt_all_clients: "-- Tous les clients --",
+                l_total_hours: "Heures sur la période", h_journal: "📋 Journal d'activités", h_parts: "🔧 Pièces utilisées",
+                th_date: "Date", th_client: "Client", th_hours: "Heures", th_dur: "Durée", th_app: "App.", th_ref: "Référence", th_qty: "Qté",
+                btn_pdf: "📄 Exporter en PDF", h_admin: "Administration", l_new_client: "Nouveau Client", h_parts_cat: "Catalogue Articles",
+                btn_add: "Ajouter", h_team: "Membres de l'équipe", btn_create: "Créer Accès", nav_saisie: "Saisie", nav_table: "Tableau",
+                msg_saved: "Rapport enregistré !", msg_err_pin: "PIN incorrect", msg_confirm_del: "Supprimer ?"
+            },
+            nl: {
+                l_date_client: "Datum & Klant", l_start: "Start", l_end: "Einde", l_devices: "Onderhouden materiaal", l_parts: "Vervangen onderdelen",
+                btn_add_part: "+ Artikel toevoegen", btn_save: "Rapport opslaan", opt_all_clients: "-- Alle klanten --",
+                l_total_hours: "Uren over de periode", h_journal: "📋 Activiteitenlogboek", h_parts: "🔧 Gebruikte onderdelen",
+                th_date: "Datum", th_client: "Klant", th_hours: "Uren", th_dur: "Duur", th_app: "Toest.", th_ref: "Referentie", th_qty: "Hoev.",
+                btn_pdf: "📄 Exporteer naar PDF", h_admin: "Administratie", l_new_client: "Nieuwe Klant", h_parts_cat: "Artikellijst",
+                btn_add: "Toevoegen", h_team: "Teamleden", btn_create: "Toegang aanmaken", nav_saisie: "Invoer", nav_table: "Tabel",
+                msg_saved: "Rapport opgeslagen!", msg_err_pin: "Foutieve PIN", msg_confirm_del: "Verwijderen?"
+            }
+        };
+
+        let currentLang = 'fr';
+        let currentUser = null;
+        let globalCatalog = [];
+        let globalClients = [];
+        let rawData = [];
+        const monthsFr = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
+        const monthsNl = ["Januari", "Februari", "Maart", "April", "Mei", "Juni", "Juli", "Augustus", "September", "Oktober", "November", "December"];
+
+        function initSystem() {
+            document.getElementById('f-int-date').value = new Date().toISOString().split('T')[0];
+            updateDateFilters();
+            
+            db.ref('catalog').on('value', snap => { 
+                globalCatalog = snap.val() ? Object.entries(snap.val()) : []; 
+                renderAdminCatalog();
+                updatePartsDatalist();
+            });
+            db.ref('clients').on('value', snap => { 
+                globalClients = snap.val() ? Object.entries(snap.val()) : []; 
+                updateClientsDropdowns(); 
+            });
+        }
+
+        // FORMAT JJ/MM/AAAA
+        function formatDateDisplay(isoDate) {
+            if(!isoDate) return "";
+            const [y, m, d] = isoDate.split('-');
+            return `${d}/${m}/${y}`;
+        }
+
+        function updateDateFilters() {
+            const mSel = document.getElementById('filter-month');
+            const ySel = document.getElementById('filter-year');
+            const currentM = mSel.value || new Date().getMonth() + 1;
+            const currentY = ySel.value || new Date().getFullYear();
+            
+            mSel.innerHTML = ""; ySel.innerHTML = "";
+            const listM = currentLang === 'fr' ? monthsFr : monthsNl;
+            listM.forEach((m, i) => { let o = new Option(m, i+1); if(i+1 == currentM) o.selected = true; mSel.add(o); });
+            for(let y=2024; y<=2030; y++) { let o = new Option(y, y); if(y == currentY) o.selected = true; ySel.add(o); }
+        }
+
+        function toggleLang() {
+            currentLang = currentLang === 'fr' ? 'nl' : 'fr';
+            applyLang();
+            if(currentUser) db.ref('users/' + currentUser.id).update({ lang: currentLang });
+        }
+
+        function applyLang() {
+            document.getElementById('lang-flag').innerText = currentLang === 'fr' ? '🇫🇷' : '🇳🇱';
+            document.querySelectorAll('[data-t]').forEach(el => {
+                const key = el.getAttribute('data-t');
+                if(I18N[currentLang][key]) el.innerText = I18N[currentLang][key];
+            });
+            updateDateFilters();
+            applyFilters();
+        }
+
+        function processLogin() {
+            const id = document.getElementById('auth-id').value.trim().toLowerCase();
+            const pin = document.getElementById('auth-pin').value;
+            db.ref('users/' + id).once('value', snap => {
+                const u = snap.val();
+                if(u && u.pin === pin) {
+                    currentUser = { id, ...u };
+                    currentLang = u.lang || 'fr';
+                    applyLang();
+                    document.getElementById('auth-gate').style.display = 'none';
+                    document.getElementById('app-viewport').style.display = 'block';
+                    if(u.role === 'admin') {
+                        document.getElementById('admin-nav').style.display = 'flex';
+                        db.ref('users').on('value', s => renderAdminUsers(s.val()));
+                    }
+                    syncAllData();
+                } else alert(I18N[currentLang].msg_err_pin);
+            });
+        }
+
+        function syncAllData() {
+            const path = currentUser.role === 'admin' ? 'all_interventions' : 'users/' + currentUser.id + '/interventions';
+            db.ref(path).on('value', snap => {
+                rawData = snap.val() ? Object.entries(snap.val()) : [];
+                applyFilters();
+            });
+        }
+
+        function applyFilters() {
+            const m = parseInt(document.getElementById('filter-month').value);
+            const y = parseInt(document.getElementById('filter-year').value);
+            const c = document.getElementById('filter-client').value;
+            const filtered = rawData.filter(([id, int]) => {
+                const d = new Date(int.date);
+                return (d.getMonth() + 1) === m && d.getFullYear() === y && (c === "ALL" || int.client === c);
+            });
+            renderTables(filtered);
+        }
+
+        function renderTables(data) {
+            const intBody = document.getElementById('table-interventions-body');
+            const partBody = document.getElementById('table-parts-body');
+            intBody.innerHTML = ""; partBody.innerHTML = "";
+            let totalH = 0;
+
+            // TRI PAR DATE CROISSANTE (PLUS ANCIEN AU PLUS RÉCENT)
+            data.sort((a, b) => a[1].ts - b[1].ts).forEach(([id, int]) => {
+                const diff = (new Date(`1970-01-01T${int.end}`) - new Date(`1970-01-01T${int.start}`)) / 3600000;
+                totalH += diff;
+                
+                const displayDate = formatDateDisplay(int.date);
+
+                intBody.innerHTML += `<tr>
+                    <td>${displayDate}</td>
+                    <td><b>${int.client}</b></td>
+                    <td>${int.start}-${int.end}</td>
+                    <td>${decimalToTime(diff)}</td>
+                    <td>${int.devices || 0}</td>
+                    <td class="no-pdf"><button onclick="deleteInt('${id}')" style="color:red; background:none; border:none;">X</button></td>
+                </tr>`;
+
+                if(int.parts) {
+                    int.parts.forEach(p => {
+                        partBody.innerHTML += `<tr>
+                            <td>${displayDate}</td>
+                            <td>${int.client}</td>
+                            <td>${p.ref}</td>
+                            <td><b>${p.qty}</b></td>
+                        </tr>`;
+                    });
+                }
+            });
+            document.getElementById('val-stat-hours').innerText = decimalToTime(totalH);
+        }
+
+        function saveIntervention() {
+            const client = document.getElementById('f-int-client').value;
+            if(!client) return alert("Client ?");
+            const parts = [];
+            document.querySelectorAll('.part-row').forEach(row => {
+                const ref = row.querySelector('.p-ref').value;
+                const qty = row.querySelector('.p-qty').value;
+                if(ref && qty) parts.push({ ref, qty });
+            });
+            const entry = {
+                date: document.getElementById('f-int-date').value, client,
+                start: document.getElementById('f-int-start').value, end: document.getElementById('f-int-end').value,
+                devices: document.getElementById('f-int-devices').value || 0,
+                parts, author: currentUser.id, ts: Date.now()
+            };
+            const newKey = db.ref().child('all_interventions').push().key;
+            let updates = {};
+            updates['/all_interventions/' + newKey] = entry;
+            updates['/users/' + currentUser.id + '/interventions/' + newKey] = entry;
+            db.ref().update(updates).then(() => {
+                alert(I18N[currentLang].msg_saved);
+                document.getElementById('parts-container').innerHTML = "";
+                document.getElementById('f-int-devices').value = "";
+            });
+        }
+
+        function decimalToTime(dec) { const h = Math.floor(dec); const m = Math.round((dec - h) * 60); return `${h}h${m.toString().padStart(2, '0')}`; }
+        function addPartRow() {
+            const div = document.createElement('div'); div.className = 'part-row';
+            div.innerHTML = `<input type="text" class="p-ref" list="catalog-parts"><input type="number" class="p-qty" value="1"><button onclick="this.parentElement.remove()" style="color:red; background:none; border:none;">X</button>`;
+            document.getElementById('parts-container').appendChild(div);
+        }
+        function updatePartsDatalist() { 
+            const dl = document.getElementById('catalog-parts'); dl.innerHTML = "";
+            globalCatalog.forEach(([ref, data]) => { dl.innerHTML += `<option value="${ref}">${data.label}</option>`; });
+        }
+        function updateClientsDropdowns() {
+            const fC = document.getElementById('f-int-client'); const filterC = document.getElementById('filter-client');
+            fC.innerHTML = '<option value="">-- Client --</option>';
+            filterC.innerHTML = `<option value="ALL">${I18N[currentLang].opt_all_clients}</option>`;
+            globalClients.forEach(([id, name]) => { fC.add(new Option(name, name)); filterC.add(new Option(name, name)); });
+        }
+        function exportToPDF() {
+            const el = document.getElementById('export-area');
+            const h = el.querySelectorAll('button, select, .no-pdf');
+            h.forEach(x => x.style.display = 'none');
+            html2pdf().from(el).set({ margin: 10, filename: 'Rapport_Drager.pdf' }).save().then(() => h.forEach(x => x.style.display = ''));
+        }
+        function showTab(id, el) {
+            document.querySelectorAll('.app-view-block').forEach(b => b.style.display = 'none');
+            document.getElementById('section-' + id).style.display = 'block';
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            el.classList.add('active');
+        }
+        function toggleDarkMode() { document.body.classList.toggle('dark-mode'); }
+        function deleteInt(id) { if(confirm(I18N[currentLang].msg_confirm_del)) { db.ref('all_interventions/' + id).remove(); db.ref('users/' + currentUser.id + '/interventions/' + id).remove(); } }
+
+        function adminAddClient() { const n = document.getElementById('admin-new-client').value; if(n) db.ref('clients').push(n); }
+        function adminAddPart() {
+            const r = document.getElementById('cat-new-ref').value; const l = document.getElementById('cat-new-label').value;
+            if(r && l) db.ref('catalog/' + r).set({ label: l });
+        }
+        function renderAdminCatalog() {
+            const b = document.getElementById('admin-parts-list'); b.innerHTML = "";
+            globalCatalog.forEach(([ref, data]) => { b.innerHTML += `<tr><td>${ref}</td><td>${data.label}</td><td><button onclick="db.ref('catalog/${ref}').remove()" style="color:red; border:none; background:none;">X</button></td></tr>`; });
+        }
+        function adminAddUser() {
+            const id = document.getElementById('user-new-id').value.trim().toLowerCase();
+            const pin = document.getElementById('user-new-pin').value;
+            const lang = document.getElementById('user-new-lang').value;
+            const role = document.getElementById('user-new-role').value;
+            if(id && pin.length === 4) db.ref('users/' + id).set({ pin, role, lang });
+        }
+        function renderAdminUsers(users) {
+            const b = document.getElementById('admin-users-list'); b.innerHTML = "";
+            if(!users) return;
+            Object.entries(users).forEach(([id, data]) => {
+                b.innerHTML += `<tr><td><b>${id}</b> (${data.lang})</td><td><button onclick="toggleUserRole('${id}','${data.role}')" style="border:1px solid #ccc; border-radius:4px;">${data.role}</button></td><td><button onclick="db.ref('users/${id}').remove()" style="color:red; border:none; background:none;">X</button></td></tr>`;
+            });
+        }
+        function toggleUserRole(id, r) { db.ref('users/' + id).update({ role: r === 'admin' ? 'user' : 'admin' }); }
+    </script>
+</body>
+</html>
