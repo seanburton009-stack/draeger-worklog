@@ -6,7 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Dräger Log">
-    <title>Dräger WorkLog Pro v10.0</title>
+    <title>Dräger WorkLog Pro v10.1</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -25,107 +25,67 @@
             --text-main: #f1f5f9; --text-muted: #94a3b8; --border-ui: #334155;
         }
 
-        /* --- Mobile Optimization --- */
-        * { 
-            box-sizing: border-box; 
-            -webkit-tap-highlight-color: transparent; 
-            margin: 0; padding: 0; 
-            user-select: none; /* Évite la sélection de texte accidentelle sur mobile */
-        }
-        input, textarea, select { user-select: text; } /* Autorise la saisie */
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; user-select: none; }
+        input, textarea, select { user-select: text; }
 
         body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
-            background: var(--bg-body); 
-            color: var(--text-main); 
-            overflow-x: hidden;
-            overscroll-behavior-y: contain; /* Empêche le refresh "pull down" parasite */
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            background: var(--bg-body); color: var(--text-main); overflow-x: hidden;
+            overscroll-behavior-y: contain;
         }
 
         .app-container { 
             padding: calc(15px + var(--safe-top)) 16px calc(100px + var(--safe-bottom)) 16px; 
-            max-width: 600px; 
-            margin: 0 auto; 
-            display: none; 
-            animation: fadeIn 0.3s ease-out;
+            max-width: 600px; margin: 0 auto; display: none; 
         }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
         .ui-card { 
-            background: var(--bg-card); 
-            border-radius: 20px; 
-            padding: 20px; 
-            margin-bottom: 16px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
+            background: var(--bg-card); border-radius: 20px; padding: 18px; 
+            margin-bottom: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
             border: 1px solid var(--border-ui); 
         }
 
-        label { display: block; margin-bottom: 6px; font-weight: 700; font-size: 11px; color: var(--d-blue); text-transform: uppercase; letter-spacing: 0.5px; }
+        label { display: block; margin-bottom: 6px; font-weight: 700; font-size: 10px; color: var(--d-blue); text-transform: uppercase; }
         
         input, select, textarea { 
-            width: 100%; 
-            padding: 14px; 
-            border: 1.5px solid var(--border-ui); 
-            border-radius: 12px; 
-            font-size: 16px; /* Évite le zoom auto sur iPhone */
-            margin-bottom: 12px; 
-            background: var(--bg-card); 
-            color: var(--text-main); 
-            appearance: none;
+            width: 100%; padding: 12px; border: 1.5px solid var(--border-ui); 
+            border-radius: 12px; font-size: 16px; margin-bottom: 10px; 
+            background: var(--bg-card); color: var(--text-main); appearance: none;
         }
 
         .btn-main { 
-            width: 100%; 
-            background: linear-gradient(135deg, var(--d-navy), var(--d-blue)); 
-            color: white; 
-            padding: 18px; 
-            border: none; 
-            border-radius: 16px; 
-            font-weight: 800; 
-            font-size: 14px; 
-            text-transform: uppercase;
-            box-shadow: 0 4px 10px rgba(0, 94, 184, 0.3);
-            transition: transform 0.1s;
+            width: 100%; background: linear-gradient(135deg, var(--d-navy), var(--d-blue)); 
+            color: white; padding: 16px; border: none; border-radius: 16px; 
+            font-weight: 800; font-size: 14px; text-transform: uppercase;
         }
-        .btn-main:active { transform: scale(0.98); opacity: 0.9; }
+
+        /* --- Fix Tableaux iPhone --- */
+        .data-table-container { 
+            overflow-x: auto; 
+            -webkit-overflow-scrolling: touch; /* Inertia scroll Safari */
+            margin: 10px -5px; 
+            padding: 0 5px;
+            background: var(--bg-card);
+            border-radius: 8px;
+        }
+        
+        table { width: 100%; min-width: 400px; border-collapse: collapse; font-size: 11px; }
+        th { padding: 10px 5px; text-align: left; color: var(--d-blue); border-bottom: 2px solid var(--border-ui); font-weight: 800; }
+        td { padding: 10px 5px; border-bottom: 1px solid var(--border-ui); }
 
         .bottom-nav { 
-            display: flex; 
-            position: fixed; 
-            bottom: 0; left: 0; right: 0; 
-            background: var(--bg-card); 
-            padding: 10px 10px calc(10px + var(--safe-bottom)) 10px; 
-            border-top: 1px solid var(--border-ui); 
-            z-index: 1000;
-            backdrop-filter: blur(10px);
-            background: rgba(255,255,255,0.9);
+            display: flex; position: fixed; bottom: 0; left: 0; right: 0; 
+            background: rgba(255,255,255,0.9); padding: 10px 10px calc(10px + var(--safe-bottom)) 10px; 
+            border-top: 1px solid var(--border-ui); z-index: 1000; backdrop-filter: blur(10px);
         }
         body.dark-mode .bottom-nav { background: rgba(30, 41, 59, 0.9); }
 
-        .nav-item { 
-            flex: 1; border: none; background: none; 
-            font-size: 10px; color: var(--text-muted); 
-            display: flex; flex-direction: column; 
-            align-items: center; gap: 4px;
-        }
-        .nav-item i { font-style: normal; font-size: 22px; }
+        .nav-item { flex: 1; border: none; background: none; font-size: 10px; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .nav-item i { font-style: normal; font-size: 20px; }
         .nav-item.active { color: var(--d-blue); font-weight: 800; }
 
-        .stat-card { background: var(--bg-inner); padding: 12px; border-radius: 16px; text-align: center; border: 1.5px solid var(--d-sky); }
-        
+        .stat-card { background: var(--bg-inner); padding: 10px; border-radius: 16px; text-align: center; border: 1.5px solid var(--d-sky); }
         .part-row { display: grid; grid-template-columns: 1fr 70px 40px; gap: 8px; margin-bottom: 8px; }
-
-        /* Table Scroll Mobile */
-        .data-table-container { 
-            overflow-x: auto; 
-            -webkit-overflow-scrolling: touch; 
-            margin: 10px -10px; 
-            padding: 0 10px;
-        }
-        table { min-width: 450px; border-collapse: collapse; font-size: 12px; }
-        th { padding: 12px 8px; text-align: left; background: var(--bg-inner); color: var(--d-blue); border-bottom: 2px solid var(--border-ui); }
-        td { padding: 12px 8px; border-bottom: 1px solid var(--border-ui); }
 
         #auth-gate { position:fixed; inset:0; background:var(--bg-body); z-index:2000; display:flex; align-items:center; justify-content:center; }
     </style>
@@ -134,28 +94,27 @@
 
     <div id="auth-gate">
         <div class="ui-card" style="width:85%; max-width:350px; text-align:center;">
-            <div style="font-size: 40px; margin-bottom: 10px;">🩺</div>
-            <h1 style="color:var(--d-navy); margin-bottom:25px;">Dräger Log</h1>
-            <input type="text" id="auth-id" placeholder="User ID" autocomplete="username">
-            <input type="password" id="auth-pin" maxlength="4" placeholder="PIN" inputmode="numeric" autocomplete="current-password">
-            <button class="btn-main" onclick="processLogin()">Se connecter</button>
+            <h1 style="color:var(--d-navy); margin-bottom:20px;">Dräger WorkLog</h1>
+            <input type="text" id="auth-id" placeholder="User ID">
+            <input type="password" id="auth-pin" maxlength="4" placeholder="PIN" inputmode="numeric">
+            <button class="btn-main" onclick="processLogin()">LOGIN</button>
         </div>
     </div>
 
     <div id="client-rights-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:3000; align-items:center; justify-content:center; backdrop-filter:blur(5px);">
-        <div class="modal-content" style="background:var(--bg-card); width:90%; padding:25px; border-radius:25px; max-height:80vh; overflow-y:auto;">
-            <h3 id="modal-user-title" style="margin-bottom:20px;">Accès Clients</h3>
-            <div id="modal-clients-list"></div>
+        <div class="modal-content" style="background:var(--bg-card); width:90%; padding:20px; border-radius:20px; max-height:80vh; overflow-y:auto;">
+            <h3 id="modal-user-title">Accès</h3>
+            <div id="modal-clients-list" style="margin-top:15px;"></div>
             <button class="btn-main" style="margin-top:20px;" onclick="closeRightsModal()">OK</button>
         </div>
     </div>
 
     <div class="app-container" id="app-viewport">
-        <div style="display:flex; justify-content:space-between; margin-bottom:20px; align-items:center;">
-            <div style="font-weight: 900; color:var(--d-navy); font-size: 20px;">Dräger</div>
-            <div style="display:flex; gap:15px;">
-                <button onclick="toggleLang()" style="background:none; border:none; font-size:22px;"><span id="lang-flag">🇫🇷</span></button>
-                <button onclick="toggleDarkMode()" style="background:none; border:none; font-size:22px;">🌙</button>
+        <div style="display:flex; justify-content:space-between; margin-bottom:15px; align-items:center;">
+            <div style="font-weight: 900; color:var(--d-navy); font-size: 18px;">Dräger Log</div>
+            <div style="display:flex; gap:12px;">
+                <button onclick="toggleLang()" style="background:none; border:none; font-size:20px;"><span id="lang-flag">🇫🇷</span></button>
+                <button onclick="toggleDarkMode()" style="background:none; border:none; font-size:20px;">🌙</button>
             </div>
         </div>
 
@@ -163,37 +122,32 @@
             <div class="ui-card">
                 <input type="hidden" id="f-int-id">
                 <label data-t="l_date_client">Date & Client</label>
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
                     <input type="date" id="f-int-date">
                     <select id="f-int-client"><option value="" data-t="opt_select_client">-- Client --</option></select>
                 </div>
-                <div style="display:flex; gap:10px;">
+                <div style="display:flex; gap:8px;">
                     <div style="flex:1;"><label data-t="l_start">Début</label><input type="time" id="f-int-start" value="08:00"></div>
                     <div style="flex:1;"><label data-t="l_end">Fin</label><input type="time" id="f-int-end" value="16:00"></div>
                 </div>
-                <label data-t="l_devices">Appareils entretenus</label>
+                <label data-t="l_devices">Appareils</label>
                 <input type="number" id="f-int-devices" placeholder="0" inputmode="numeric">
-                
-                <label data-t="l_parts">Pièces / Articles</label>
+                <label data-t="l_parts">Pièces</label>
                 <div id="parts-container"></div>
-                <button onclick="addPartRow()" style="background:var(--bg-inner); border:1.5px dashed var(--border-ui); width:100%; padding:14px; border-radius:12px; color:var(--d-blue); font-weight:700; margin-bottom:15px;" data-t="btn_add_part">+ Ajouter article</button>
-                
-                <textarea id="f-int-notes" data-t-placeholder="ph_notes" placeholder="Notes..." rows="3"></textarea>
+                <button onclick="addPartRow()" style="background:var(--bg-inner); border:1px dashed var(--border-ui); width:100%; padding:12px; border-radius:12px; color:var(--d-blue); font-weight:700; margin-bottom:12px;" data-t="btn_add_part">+ Pièce</button>
+                <textarea id="f-int-notes" data-t-placeholder="ph_notes" placeholder="Notes..." rows="2"></textarea>
                 <button class="btn-main" id="btn-save-main" onclick="saveIntervention()" data-t="btn_save">Enregistrer</button>
-                <button class="btn-main" id="btn-cancel-edit" onclick="resetForm()" style="display:none; background: #64748b; margin-top:12px;" data-t="btn_cancel">Annuler</button>
+                <button class="btn-main" id="btn-cancel-edit" onclick="resetForm()" style="display:none; background:#64748b; margin-top:10px;" data-t="btn_cancel">Annuler</button>
             </div>
         </div>
 
         <div id="section-registre" class="app-view-block" style="display:none;">
             <div class="ui-card" id="export-area">
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:12px;">
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:10px;">
                     <select id="filter-month" onchange="applyFilters()"></select>
                     <select id="filter-year" onchange="applyFilters()"></select>
                 </div>
-                <select id="filter-client" onchange="applyFilters()" style="margin-bottom:12px;">
-                    <option value="ALL" data-t="opt_all_clients">-- Clients --</option>
-                </select>
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:15px;">
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:12px;">
                     <div class="stat-card"><label data-t="l_total_hours">Heures</label><b id="val-stat-hours">0h00</b></div>
                     <div class="stat-card"><label data-t="l_total_devices">Appareils</label><b id="val-stat-devices">0</b></div>
                 </div>
@@ -204,58 +158,65 @@
                         <tbody id="table-interventions-body"></tbody>
                     </table>
                 </div>
-                <button class="btn-pdf" style="width:100%; height:50px; margin-top:20px;" onclick="exportToPDF()" data-t="btn_pdf">📄 PDF Report</button>
+
+                <h3 style="font-size:12px; color:var(--d-blue); margin:15px 0 5px 0;" data-t="h_parts">🔧 Pièces utilisées</h3>
+                <div class="data-table-container" style="border: 1px solid var(--border-ui); min-height: 100px;">
+                    <table>
+                        <thead><tr><th data-t="th_date">Date</th><th data-t="th_ref">Réf</th><th data-t="th_qty">Qté</th></tr></thead>
+                        <tbody id="table-parts-body"></tbody>
+                    </table>
+                </div>
+
+                <button class="btn-pdf" style="width:100%; background:#e11d48; color:white; border:none; padding:15px; border-radius:15px; font-weight:700; margin-top:15px;" onclick="exportToPDF()" data-t="btn_pdf">📄 Exporter PDF</button>
             </div>
         </div>
 
         <div id="section-admin" class="app-view-block" style="display:none;">
             <div class="ui-card">
                 <h3 data-t="h_admin">Admin</h3>
-                <div style="display:flex; gap:8px; margin:15px 0;"><input type="text" id="admin-new-client" placeholder="Client..."><button onclick="adminAddClient()" class="btn-main" style="width:60px;">+</button></div>
-                <div class="data-table-container" style="max-height:150px; margin-bottom:20px;"><table><tbody id="admin-users-list"></tbody></table></div>
-                <label data-t="h_catalog">Catalogue Articles</label>
+                <div style="display:flex; gap:8px; margin:10px 0;"><input type="text" id="admin-new-client" placeholder="Client..."><button onclick="adminAddClient()" class="btn-main" style="width:50px;">+</button></div>
+                <div class="data-table-container" style="max-height:150px; margin-bottom:15px;"><table><tbody id="admin-users-list"></tbody></table></div>
+                <label data-t="h_catalog">Catalogue</label>
                 <input type="text" id="cat-new-ref" placeholder="Réf"><input type="text" id="cat-new-label" placeholder="Libellé">
-                <button onclick="adminAddPart()" class="btn-main" style="background:var(--color-ok);" data-t="btn_add">Ajouter au stock</button>
+                <button onclick="adminAddPart()" class="btn-main" style="background:var(--color-ok);" data-t="btn_add">Ajouter</button>
             </div>
         </div>
     </div>
 
-    <datalist id="catalog-parts"></datalist>
-
     <nav class="bottom-nav">
         <button class="nav-item active" id="nav-saisie" onclick="showTab('saisie', this)"><i>📝</i><span data-t="nav_saisie">Saisie</span></button>
-        <button class="nav-item" id="nav-registre" onclick="showTab('registre', this)"><i>📊</i><span data-t="nav_table">Tabel</span></button>
+        <button class="nav-item" id="nav-registre" onclick="showTab('registre', this)"><i>📊</i><span data-t="nav_table">Tableau</span></button>
         <button class="nav-item" id="admin-nav" style="display:none;" onclick="showTab('admin', this)"><i>🛡️</i><span>Admin</span></button>
     </nav>
 
+    <datalist id="catalog-parts"></datalist>
+
     <script>
-        // --- CONFIG & I18N ---
         const FIREBASE_CONFIG = { apiKey: "AIzaSyBPC6cJgFwBrSOppxE_kQDA2gs1ioEvGCw", authDomain: "worklog-fc54b.firebaseapp.com", databaseURL: "https://worklog-fc54b-default-rtdb.europe-west1.firebasedatabase.app/", projectId: "worklog-fc54b" };
         firebase.initializeApp(FIREBASE_CONFIG);
         const db = firebase.database();
 
         const I18N = {
             fr: {
-                l_date_client: "Date & Client", l_start: "Début", l_end: "Fin", l_devices: "Appareils entretenus", l_parts: "Pièces / Articles",
-                btn_add_part: "+ Ajouter article", btn_save: "Enregistrer Rapport", btn_update: "Mettre à jour", btn_cancel: "Annuler",
-                ph_notes: "Notes...", opt_select_client: "-- Client --", opt_all_clients: "-- Tous mes clients --",
-                l_total_hours: "Total Heures", l_total_devices: "Total Appareils", h_parts: "Pièces utilisées", th_date: "Date", th_client: "Client",
-                th_dur: "Durée", th_ref: "Réf", th_qty: "Qté", btn_pdf: "Exporter en PDF", h_admin: "Administration", h_catalog: "Stock / Articles",
-                btn_add: "Ajouter", nav_saisie: "Saisie", nav_table: "Tableau", msg_confirm_del: "Supprimer ?"
+                l_date_client: "Date & Client", l_start: "Début", l_end: "Fin", l_devices: "Appareils", l_parts: "Pièces",
+                btn_add_part: "+ Pièce", btn_save: "Enregistrer", btn_update: "Mettre à jour", btn_cancel: "Annuler",
+                ph_notes: "Notes...", opt_select_client: "-- Client --", l_total_hours: "Heures", l_total_devices: "Appareils",
+                h_parts: "Pièces utilisées", th_date: "Date", th_client: "Client", th_dur: "Durée", th_ref: "Réf", th_qty: "Qté",
+                btn_pdf: "Exporter PDF", h_admin: "Admin", h_catalog: "Catalogue", btn_add: "Ajouter", nav_saisie: "Saisie",
+                nav_table: "Tableau", msg_confirm_del: "Supprimer ?"
             },
             nl: {
-                l_date_client: "Datum & Klant", l_start: "Start", l_end: "Einde", l_devices: "Onderhouden apparaten", l_parts: "Onderdelen",
-                btn_add_part: "+ Artikel toevoegen", btn_save: "Rapport opslaan", btn_update: "Bijwerken", btn_cancel: "Annuleren",
-                ph_notes: "Notities...", opt_select_client: "-- Klant --", opt_all_clients: "-- Alle klanten --",
-                l_total_hours: "Totaal uren", l_total_devices: "Totaal apparaten", h_parts: "Gebruikte onderdelen", th_date: "Datum", th_client: "Klant",
-                th_dur: "Duur", th_ref: "Ref", th_qty: "Hoev.", btn_pdf: "PDF Exporteren", h_admin: "Beheer", h_catalog: "Voorraad / Artikelen",
-                btn_add: "Toevoegen", nav_saisie: "Invoeren", nav_table: "Tabel", msg_confirm_del: "Verwijderen?"
+                l_date_client: "Datum & Klant", l_start: "Start", l_end: "Einde", l_devices: "Apparaten", l_parts: "Onderdelen",
+                btn_add_part: "+ Onderdeel", btn_save: "Opslaan", btn_update: "Bijwerken", btn_cancel: "Annuleren",
+                ph_notes: "Notities...", opt_select_client: "-- Klant --", l_total_hours: "Uren", l_total_devices: "Apparaten",
+                h_parts: "Gebruikte onderdelen", th_date: "Datum", th_client: "Klant", th_dur: "Duur", th_ref: "Ref", th_qty: "Hoev.",
+                btn_pdf: "PDF Exporteren", h_admin: "Admin", h_catalog: "Catalogus", btn_add: "Toevoegen", nav_saisie: "Invoeren",
+                nav_table: "Tabel", msg_confirm_del: "Verwijderen?"
             }
         };
 
-        let currentLang = 'fr', currentUser = null, globalCatalog = [], globalClients = [], rawData = [], targetRightsUserId = null;
+        let currentLang = 'fr', currentUser = null, globalCatalog = [], globalClients = [], rawData = [];
 
-        // --- CORE FUNCTIONS ---
         function initSystem() {
             document.getElementById('f-int-date').value = new Date().toISOString().split('T')[0];
             db.ref('catalog').on('value', snap => { globalCatalog = snap.val() ? Object.entries(snap.val()) : []; updatePartsDatalist(); });
@@ -276,37 +237,33 @@
                         db.ref('users').on('value', s => renderAdminUsers(s.val()));
                     }
                     db.ref('all_interventions').on('value', snap => { rawData = snap.val() ? Object.entries(snap.val()) : []; applyFilters(); });
-                    updateClientsDropdowns(); applyI18N();
+                    applyI18N(); updateClientsDropdowns();
                 } else alert("Error PIN");
             });
         }
 
         function applyFilters() {
-            const m = parseInt(document.getElementById('filter-month').value), y = parseInt(document.getElementById('filter-year').value), c = document.getElementById('filter-client').value;
+            const m = parseInt(document.getElementById('filter-month').value), y = parseInt(document.getElementById('filter-year').value);
             const filtered = rawData.filter(([id, int]) => {
                 const d = new Date(int.date);
                 const clientId = (globalClients.find(gc => gc[1] === int.client))?.[0];
                 const isAllowed = currentUser.role === 'admin' || (currentUser.allowedClients && currentUser.allowedClients[clientId]);
-                return (d.getMonth() + 1) === m && d.getFullYear() === y && isAllowed && (c === "ALL" || int.client === c);
+                return (d.getMonth() + 1) === m && d.getFullYear() === y && isAllowed;
             });
             renderTables(filtered);
         }
 
         function renderTables(data) {
-            const intBody = document.getElementById('table-interventions-body');
-            intBody.innerHTML = ""; let th = 0, td = 0;
+            const intBody = document.getElementById('table-interventions-body'), partBody = document.getElementById('table-parts-body');
+            intBody.innerHTML = ""; partBody.innerHTML = ""; let th = 0, td = 0;
             data.sort((a,b) => b[1].date.localeCompare(a[1].date)).forEach(([id, int]) => {
                 const diff = (new Date(`1970-01-01T${int.end}`) - new Date(`1970-01-01T${int.start}`)) / 3600000;
                 th += diff; td += parseInt(int.devices || 0);
                 const isOwner = int.author === currentUser.id || currentUser.role === 'admin';
-                intBody.innerHTML += `<tr>
-                    <td>${int.date.split('-').reverse().slice(0,2).join('/')}</td>
-                    <td><b>${int.client}</b></td>
-                    <td>${decimalToTime(diff)}</td>
-                    <td class="no-pdf">
-                        ${isOwner ? `<span onclick="editInt('${id}')" style="color:var(--d-sky);margin-right:15px;font-size:18px;">✎</span><span onclick="deleteInt('${id}')" style="color:red;font-size:18px;">✕</span>` : ''}
-                    </td>
-                </tr>`;
+                intBody.innerHTML += `<tr><td>${int.date.split('-').reverse().slice(0,2).join('/')}</td><td><b>${int.client}</b></td><td>${decimalToTime(diff)}</td><td class="no-pdf">${isOwner ? `<span onclick="editInt('${id}')" style="color:var(--d-sky);margin-right:12px;">✎</span><span onclick="deleteInt('${id}')" style="color:red;">✕</span>` : ''}</td></tr>`;
+                if(int.parts) int.parts.forEach(p => {
+                    partBody.innerHTML += `<tr><td>${int.date.split('-').reverse().slice(0,2).join('/')}</td><td>${p.ref}</td><td>${p.qty}</td></tr>`;
+                });
             });
             document.getElementById('val-stat-hours').innerText = decimalToTime(th);
             document.getElementById('val-stat-devices').innerText = td;
@@ -318,16 +275,12 @@
             const entry = {
                 date: document.getElementById('f-int-date').value, client,
                 start: document.getElementById('f-int-start').value, end: document.getElementById('f-int-end').value,
-                devices: document.getElementById('f-int-devices').value || 0,
-                notes: document.getElementById('f-int-notes').value,
+                devices: document.getElementById('f-int-devices').value || 0, notes: document.getElementById('f-int-notes').value,
                 parts: Array.from(document.querySelectorAll('.part-row')).map(r => ({ ref: r.querySelector('.p-ref').value, qty: r.querySelector('.p-qty').value })),
                 author: id ? rawData.find(x => x[0] === id)[1].author : currentUser.id, ts: Date.now()
             };
             const key = id || db.ref().child('all_interventions').push().key;
-            db.ref('/all_interventions/'+key).set(entry).then(() => { 
-                if(window.navigator.vibrate) window.navigator.vibrate(50);
-                resetForm(); 
-            });
+            db.ref('/all_interventions/'+key).set(entry).then(() => resetForm());
         }
 
         function editInt(id) {
@@ -347,81 +300,46 @@
         }
 
         function deleteInt(id) { if(confirm(I18N[currentLang].msg_confirm_del)) db.ref('all_interventions/'+id).remove(); }
-        
         function addPartRow(ref="", qty=1) {
             const div = document.createElement('div'); div.className = 'part-row';
-            div.innerHTML = `<input type="text" class="p-ref" list="catalog-parts" value="${ref}" placeholder="Réf"><input type="number" class="p-qty" value="${qty}" inputmode="numeric"><button onclick="this.parentElement.remove()" style="color:red; border:none; background:none; font-size:18px;">✕</button>`;
+            div.innerHTML = `<input type="text" class="p-ref" list="catalog-parts" value="${ref}"><input type="number" class="p-qty" value="${qty}" inputmode="numeric"><button onclick="this.parentElement.remove()" style="color:red; border:none; background:none;">✕</button>`;
             document.getElementById('parts-container').appendChild(div);
         }
-
-        // --- UI HELPERS ---
         function toggleLang() { currentLang = currentLang === 'fr' ? 'nl' : 'fr'; applyI18N(); if(currentUser) db.ref('users/'+currentUser.id+'/lang').set(currentLang); }
-        
         function applyI18N() {
             document.getElementById('lang-flag').innerText = currentLang === 'fr' ? '🇫🇷' : '🇳🇱';
             document.querySelectorAll('[data-t]').forEach(el => el.innerText = I18N[currentLang][el.getAttribute('data-t')]);
             document.querySelectorAll('[data-t-placeholder]').forEach(el => el.placeholder = I18N[currentLang][el.getAttribute('data-t-placeholder')]);
             updateDateFilters();
         }
-
-        function showTab(id, el) {
-            document.querySelectorAll('.app-view-block').forEach(b => b.style.display = 'none');
-            document.getElementById('section-'+id).style.display='block';
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            el.classList.add('active');
-            window.scrollTo(0,0);
-        }
-
+        function showTab(id, el) { document.querySelectorAll('.app-view-block').forEach(b => b.style.display = 'none'); document.getElementById('section-'+id).style.display='block'; document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); el.classList.add('active'); window.scrollTo(0,0); }
         function updateDateFilters() {
             const mS = document.getElementById('filter-month'), yS = document.getElementById('filter-year');
             const months = currentLang === 'fr' ? ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"] : ["Januari", "Februari", "Maart", "April", "Mei", "Juni", "Juli", "Augustus", "September", "Oktober", "November", "December"];
-            const curM = mS.value; mS.innerHTML = ""; yS.innerHTML = "";
-            months.forEach((m, i) => mS.add(new Option(m, i+1)));
+            mS.innerHTML = ""; yS.innerHTML = ""; months.forEach((m, i) => mS.add(new Option(m, i+1)));
             for(let y=2024; y<=2027; y++) yS.add(new Option(y, y));
-            mS.value = curM || new Date().getMonth()+1; yS.value = new Date().getFullYear();
+            mS.value = new Date().getMonth()+1; yS.value = new Date().getFullYear();
         }
-
         function updateClientsDropdowns() {
-            const fC = document.getElementById('f-int-client'), filterC = document.getElementById('filter-client');
-            fC.innerHTML = `<option value="">${I18N[currentLang].opt_select_client}</option>`;
-            filterC.innerHTML = `<option value="ALL">${I18N[currentLang].opt_all_clients}</option>`;
-            globalClients.forEach(([id, name]) => {
-                if (currentUser?.role === 'admin' || (currentUser?.allowedClients && currentUser.allowedClients[id])) {
-                    fC.add(new Option(name, name)); filterC.add(new Option(name, name));
-                }
-            });
+            const fC = document.getElementById('f-int-client'); fC.innerHTML = `<option value="">${I18N[currentLang].opt_select_client}</option>`;
+            globalClients.forEach(([id, name]) => { if (currentUser?.role === 'admin' || (currentUser?.allowedClients && currentUser.allowedClients[id])) fC.add(new Option(name, name)); });
         }
-
-        function renderAdminUsers(users) {
-            const b = document.getElementById('admin-users-list'); b.innerHTML = "";
-            if(!users) return;
-            Object.entries(users).forEach(([id, u]) => {
-                b.innerHTML += `<tr><td><b>${id}</b></td><td><button onclick="openRightsModal('${id}')" style="background:var(--d-sky); color:white; border:none; padding:6px 12px; border-radius:8px; font-size:10px;">ACCÈS</button></td></tr>`;
-            });
-        }
-
+        function renderAdminUsers(users) { const b = document.getElementById('admin-users-list'); b.innerHTML = ""; if(!users) return; Object.entries(users).forEach(([id, u]) => { b.innerHTML += `<tr><td>${id}</td><td><button onclick="openRightsModal('${id}')" style="background:var(--d-sky); color:white; border:none; padding:5px; border-radius:5px;">ACCÈS</button></td></tr>`; }); }
         function openRightsModal(userId) {
-            targetRightsUserId = userId; document.getElementById('modal-user-title').innerText = userId;
             const container = document.getElementById('modal-clients-list'); container.innerHTML = "";
             db.ref('users/' + userId + '/allowedClients').once('value', snap => {
                 const allowed = snap.val() || {};
-                globalClients.forEach(([id, name]) => {
-                    container.innerHTML += `<div style="display:flex; align-items:center; gap:15px; padding:12px; border-bottom:1px solid var(--border-ui)">
-                        <input type="checkbox" style="width:25px; height:25px; margin:0;" ${allowed[id]?"checked":""} onchange="db.ref('users/${targetRightsUserId}/allowedClients/${id}').set(this.checked?true:null)">
-                        <span style="font-size:14px;">${name}</span>
-                    </div>`;
-                });
+                globalClients.forEach(([id, name]) => { container.innerHTML += `<div style="padding:10px; border-bottom:1px solid #eee"><input type="checkbox" ${allowed[id]?"checked":""} onchange="db.ref('users/${userId}/allowedClients/${id}').set(this.checked?true:null)"> ${name}</div>`; });
                 document.getElementById('client-rights-modal').style.display = 'flex';
             });
         }
-
         function closeRightsModal() { document.getElementById('client-rights-modal').style.display = 'none'; updateClientsDropdowns(); }
         function decimalToTime(dec) { const h = Math.floor(dec); const m = Math.round((dec - h) * 60); return `${h}h${m.toString().padStart(2, '0')}`; }
         function updatePartsDatalist() { const dl = document.getElementById('catalog-parts'); dl.innerHTML = ""; globalCatalog.forEach(([r, d]) => dl.innerHTML += `<option value="${r}">${d.label}</option>`); }
         function adminAddClient() { const n = document.getElementById('admin-new-client').value; if(n) db.ref('clients').push(n).then(()=>document.getElementById('admin-new-client').value=""); }
         function adminAddPart() { const r = document.getElementById('cat-new-ref').value, l = document.getElementById('cat-new-label').value; if(r && l) db.ref('catalog/'+r).set({label:l}).then(()=>{document.getElementById('cat-new-ref').value="";document.getElementById('cat-new-label').value="";}); }
         function resetForm() { document.getElementById('f-int-id').value = ""; document.getElementById('parts-container').innerHTML = ""; document.getElementById('btn-save-main').innerText = I18N[currentLang].btn_save; document.getElementById('btn-cancel-edit').style.display = 'none'; document.getElementById('f-int-notes').value=""; }
-        function exportToPDF() { const el = document.getElementById('export-area'), h = el.querySelectorAll('button, select, .no-pdf'); h.forEach(x => x.style.display = 'none'); html2pdf().from(el).set({ margin: 5, filename: 'Drager_Report.pdf', image: { type: 'jpeg', quality: 0.98 } }).save().then(() => h.forEach(x => x.style.display = '')); }
+        function exportToPDF() { const el = document.getElementById('export-area'), h = el.querySelectorAll('button, select, .no-pdf'); h.forEach(x => x.style.display = 'none'); html2pdf().from(el).set({ margin: 5, filename: 'Drager_Report.pdf' }).save().then(() => h.forEach(x => x.style.display = '')); }
         function toggleDarkMode() { document.body.classList.toggle('dark-mode'); }
     </script>
 </body>
