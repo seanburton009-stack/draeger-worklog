@@ -6,7 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Dräger Log">
-    <title>Dräger WorkLog Pro v10.1</title>
+    <title>Dräger WorkLog Pro v10.3</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -56,13 +56,12 @@
         .btn-main { 
             width: 100%; background: linear-gradient(135deg, var(--d-navy), var(--d-blue)); 
             color: white; padding: 16px; border: none; border-radius: 16px; 
-            font-weight: 800; font-size: 14px; text-transform: uppercase;
+            font-weight: 800; font-size: 14px; text-transform: uppercase; cursor: pointer;
         }
 
-        /* --- Fix Tableaux iPhone --- */
         .data-table-container { 
             overflow-x: auto; 
-            -webkit-overflow-scrolling: touch; /* Inertia scroll Safari */
+            -webkit-overflow-scrolling: touch; 
             margin: 10px -5px; 
             padding: 0 5px;
             background: var(--bg-card);
@@ -80,7 +79,7 @@
         }
         body.dark-mode .bottom-nav { background: rgba(30, 41, 59, 0.9); }
 
-        .nav-item { flex: 1; border: none; background: none; font-size: 10px; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .nav-item { flex: 1; border: none; background: none; font-size: 10px; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; }
         .nav-item i { font-style: normal; font-size: 20px; }
         .nav-item.active { color: var(--d-blue); font-weight: 800; }
 
@@ -111,13 +110,14 @@
 
     <div class="app-container" id="app-viewport">
         <div style="display:flex; justify-content:space-between; margin-bottom:15px; align-items:center;">
-            <div style="font-weight: 900; color:var(--d-navy); font-size: 18px;">Dräger Log</div>
+            <div style="font-weight: 900; color:var(--d-navy); font-size: 18px;">Dräger Log Pro</div>
             <div style="display:flex; gap:12px;">
-                <button onclick="toggleLang()" style="background:none; border:none; font-size:20px;"><span id="lang-flag">🇫🇷</span></button>
-                <button onclick="toggleDarkMode()" style="background:none; border:none; font-size:20px;">🌙</button>
+                <button onclick="toggleLang()" style="background:none; border:none; font-size:20px; cursor:pointer;"><span id="lang-flag">🇫🇷</span></button>
+                <button onclick="toggleDarkMode()" style="background:none; border:none; font-size:20px; cursor:pointer;">🌙</button>
             </div>
         </div>
 
+        <!-- ONGLET SAISIE -->
         <div id="section-saisie" class="app-view-block">
             <div class="ui-card">
                 <input type="hidden" id="f-int-id">
@@ -134,19 +134,22 @@
                 <input type="number" id="f-int-devices" placeholder="0" inputmode="numeric">
                 <label data-t="l_parts">Pièces</label>
                 <div id="parts-container"></div>
-                <button onclick="addPartRow()" style="background:var(--bg-inner); border:1px dashed var(--border-ui); width:100%; padding:12px; border-radius:12px; color:var(--d-blue); font-weight:700; margin-bottom:12px;" data-t="btn_add_part">+ Pièce</button>
+                <button onclick="addPartRow()" style="background:var(--bg-inner); border:1px dashed var(--border-ui); width:100%; padding:12px; border-radius:12px; color:var(--d-blue); font-weight:700; margin-bottom:12px; cursor:pointer;" data-t="btn_add_part">+ Pièce</button>
                 <textarea id="f-int-notes" data-t-placeholder="ph_notes" placeholder="Notes..." rows="2"></textarea>
                 <button class="btn-main" id="btn-save-main" onclick="saveIntervention()" data-t="btn_save">Enregistrer</button>
-                <button class="btn-main" id="btn-cancel-edit" onclick="resetForm()" style="display:none; background:#64748b; margin-top:10px;" data-t="btn_cancel">Annuler</button>
+                <button class="btn-main" id="btn-cancel-edit" onclick="resetForm()" style="display:none; background:#64748b; margin-top:10px; cursor:pointer;" data-t="btn_cancel">Annuler</button>
             </div>
         </div>
 
+        <!-- ONGLET TABLEAU -->
         <div id="section-registre" class="app-view-block" style="display:none;">
             <div class="ui-card" id="export-area">
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:10px;">
                     <select id="filter-month" onchange="applyFilters()"></select>
                     <select id="filter-year" onchange="applyFilters()"></select>
                 </div>
+                <input type="text" id="search-filter" placeholder="🔍 Rechercher (Client, Notes...)" oninput="applyFilters()" style="margin-bottom:10px;">
+                
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:12px;">
                     <div class="stat-card"><label data-t="l_total_hours">Heures</label><b id="val-stat-hours">0h00</b></div>
                     <div class="stat-card"><label data-t="l_total_devices">Appareils</label><b id="val-stat-devices">0</b></div>
@@ -167,25 +170,48 @@
                     </table>
                 </div>
 
-                <button class="btn-pdf" style="width:100%; background:#e11d48; color:white; border:none; padding:15px; border-radius:15px; font-weight:700; margin-top:15px;" onclick="exportToPDF()" data-t="btn_pdf">📄 Exporter PDF</button>
+                <div style="display:flex; gap:8px; margin-top:15px;">
+                    <button class="btn-pdf" style="flex:1; background:#e11d48; color:white; border:none; padding:15px; border-radius:15px; font-weight:700; cursor:pointer;" onclick="exportToPDF()" data-t="btn_pdf">📄 PDF</button>
+                    <button class="btn-csv" style="flex:1; background:#10b981; color:white; border:none; padding:15px; border-radius:15px; font-weight:700; cursor:pointer;" onclick="exportToCSV()">📊 CSV</button>
+                </div>
             </div>
         </div>
 
+        <!-- ONGLET PROFIL / PARAMÈTRES PERSO (NOUVEAU) -->
+        <div id="section-profil" class="app-view-block" style="display:none;">
+            <div class="ui-card">
+                <h3 style="color:var(--d-navy); margin-bottom:15px;">Mes paramètres personnels</h3>
+                <label>Heures à prester par semaine (h)</label>
+                <input type="number" id="user-contract-hours" placeholder="Ex: 38" inputmode="numeric">
+                
+                <label>Jours de congés / an (ou acquis)</label>
+                <input type="number" id="user-vacation-days" placeholder="Ex: 20" inputmode="numeric">
+                
+                <label>Temps de pause standard (minutes)</label>
+                <input type="number" id="user-break-time" placeholder="Ex: 30" inputmode="numeric">
+
+                <button class="btn-main" onclick="saveUserProfile()" style="margin-top:10px;">Enregistrer mes réglages</button>
+            </div>
+        </div>
+
+        <!-- ONGLET ADMIN -->
         <div id="section-admin" class="app-view-block" style="display:none;">
             <div class="ui-card">
                 <h3 data-t="h_admin">Admin</h3>
-                <div style="display:flex; gap:8px; margin:10px 0;"><input type="text" id="admin-new-client" placeholder="Client..."><button onclick="adminAddClient()" class="btn-main" style="width:50px;">+</button></div>
+                <div style="display:flex; gap:8px; margin:10px 0;"><input type="text" id="admin-new-client" placeholder="Client..."><button onclick="adminAddClient()" class="btn-main" style="width:50px; cursor:pointer;">+</button></div>
                 <div class="data-table-container" style="max-height:150px; margin-bottom:15px;"><table><tbody id="admin-users-list"></tbody></table></div>
                 <label data-t="h_catalog">Catalogue</label>
                 <input type="text" id="cat-new-ref" placeholder="Réf"><input type="text" id="cat-new-label" placeholder="Libellé">
-                <button onclick="adminAddPart()" class="btn-main" style="background:var(--color-ok);" data-t="btn_add">Ajouter</button>
+                <button onclick="adminAddPart()" class="btn-main" style="background:var(--color-ok); cursor:pointer;" data-t="btn_add">Ajouter</button>
             </div>
         </div>
     </div>
 
+    <!-- NAVIGATION DU BAS -->
     <nav class="bottom-nav">
         <button class="nav-item active" id="nav-saisie" onclick="showTab('saisie', this)"><i>📝</i><span data-t="nav_saisie">Saisie</span></button>
         <button class="nav-item" id="nav-registre" onclick="showTab('registre', this)"><i>📊</i><span data-t="nav_table">Tableau</span></button>
+        <button class="nav-item" id="nav-profil" onclick="showTab('profil', this)"><i>⚙️</i><span>Profil</span></button>
         <button class="nav-item" id="admin-nav" style="display:none;" onclick="showTab('admin', this)"><i>🛡️</i><span>Admin</span></button>
     </nav>
 
@@ -232,6 +258,12 @@
                     currentUser = { id, ...u }; currentLang = u.lang || 'fr';
                     document.getElementById('auth-gate').style.display = 'none';
                     document.getElementById('app-viewport').style.display = 'block';
+
+                    // Charger les données personnelles dans l'onglet Profil
+                    document.getElementById('user-contract-hours').value = u.contractHours || '';
+                    document.getElementById('user-vacation-days').value = u.vacationDays || '';
+                    document.getElementById('user-break-time').value = u.breakTime || '';
+
                     if(u.role === 'admin') {
                         document.getElementById('admin-nav').style.display = 'flex';
                         db.ref('users').on('value', s => renderAdminUsers(s.val()));
@@ -242,13 +274,35 @@
             });
         }
 
+        // Sauvegarder les paramètres perso de l'utilisateur connecté
+        function saveUserProfile() {
+            if (!currentUser) return;
+            const contractHours = document.getElementById('user-contract-hours').value;
+            const vacationDays = document.getElementById('user-vacation-days').value;
+            const breakTime = document.getElementById('user-break-time').value;
+
+            db.ref('users/' + currentUser.id).update({
+                contractHours,
+                vacationDays,
+                breakTime
+            }).then(() => {
+                alert(currentLang === 'fr' ? "Paramètres enregistrés avec succès !" : "Instellingen succesvol opgeslagen!");
+            });
+        }
+
         function applyFilters() {
             const m = parseInt(document.getElementById('filter-month').value), y = parseInt(document.getElementById('filter-year').value);
+            const search = document.getElementById('search-filter').value.toLowerCase();
+            
             const filtered = rawData.filter(([id, int]) => {
                 const d = new Date(int.date);
                 const clientId = (globalClients.find(gc => gc[1] === int.client))?.[0];
                 const isAllowed = currentUser.role === 'admin' || (currentUser.allowedClients && currentUser.allowedClients[clientId]);
-                return (d.getMonth() + 1) === m && d.getFullYear() === y && isAllowed;
+                
+                const matchDate = (d.getMonth() + 1) === m && d.getFullYear() === y;
+                const matchSearch = !search || int.client.toLowerCase().includes(search) || (int.notes && int.notes.toLowerCase().includes(search));
+                
+                return matchDate && isAllowed && matchSearch;
             });
             renderTables(filtered);
         }
@@ -260,7 +314,7 @@
                 const diff = (new Date(`1970-01-01T${int.end}`) - new Date(`1970-01-01T${int.start}`)) / 3600000;
                 th += diff; td += parseInt(int.devices || 0);
                 const isOwner = int.author === currentUser.id || currentUser.role === 'admin';
-                intBody.innerHTML += `<tr><td>${int.date.split('-').reverse().slice(0,2).join('/')}</td><td><b>${int.client}</b></td><td>${decimalToTime(diff)}</td><td class="no-pdf">${isOwner ? `<span onclick="editInt('${id}')" style="color:var(--d-sky);margin-right:12px;">✎</span><span onclick="deleteInt('${id}')" style="color:red;">✕</span>` : ''}</td></tr>`;
+                intBody.innerHTML += `<tr><td>${int.date.split('-').reverse().slice(0,2).join('/')}</td><td><b>${int.client}</b></td><td>${decimalToTime(diff)}</td><td class="no-pdf">${isOwner ? `<span onclick="editInt('${id}')" style="color:var(--d-sky);margin-right:12px;cursor:pointer;">✎</span><span onclick="deleteInt('${id}')" style="color:red;cursor:pointer;">✕</span>` : ''}</td></tr>`;
                 if(int.parts) int.parts.forEach(p => {
                     partBody.innerHTML += `<tr><td>${int.date.split('-').reverse().slice(0,2).join('/')}</td><td>${p.ref}</td><td>${p.qty}</td></tr>`;
                 });
@@ -302,7 +356,7 @@
         function deleteInt(id) { if(confirm(I18N[currentLang].msg_confirm_del)) db.ref('all_interventions/'+id).remove(); }
         function addPartRow(ref="", qty=1) {
             const div = document.createElement('div'); div.className = 'part-row';
-            div.innerHTML = `<input type="text" class="p-ref" list="catalog-parts" value="${ref}"><input type="number" class="p-qty" value="${qty}" inputmode="numeric"><button onclick="this.parentElement.remove()" style="color:red; border:none; background:none;">✕</button>`;
+            div.innerHTML = `<input type="text" class="p-ref" list="catalog-parts" value="${ref}"><input type="number" class="p-qty" value="${qty}" inputmode="numeric"><button onclick="this.parentElement.remove()" style="color:red; border:none; background:none; cursor:pointer;">✕</button>`;
             document.getElementById('parts-container').appendChild(div);
         }
         function toggleLang() { currentLang = currentLang === 'fr' ? 'nl' : 'fr'; applyI18N(); if(currentUser) db.ref('users/'+currentUser.id+'/lang').set(currentLang); }
@@ -324,7 +378,7 @@
             const fC = document.getElementById('f-int-client'); fC.innerHTML = `<option value="">${I18N[currentLang].opt_select_client}</option>`;
             globalClients.forEach(([id, name]) => { if (currentUser?.role === 'admin' || (currentUser?.allowedClients && currentUser.allowedClients[id])) fC.add(new Option(name, name)); });
         }
-        function renderAdminUsers(users) { const b = document.getElementById('admin-users-list'); b.innerHTML = ""; if(!users) return; Object.entries(users).forEach(([id, u]) => { b.innerHTML += `<tr><td>${id}</td><td><button onclick="openRightsModal('${id}')" style="background:var(--d-sky); color:white; border:none; padding:5px; border-radius:5px;">ACCÈS</button></td></tr>`; }); }
+        function renderAdminUsers(users) { const b = document.getElementById('admin-users-list'); b.innerHTML = ""; if(!users) return; Object.entries(users).forEach(([id, u]) => { b.innerHTML += `<tr><td>${id}</td><td><button onclick="openRightsModal('${id}')" style="background:var(--d-sky); color:white; border:none; padding:5px; border-radius:5px; cursor:pointer;">ACCÈS</button></td></tr>`; }); }
         function openRightsModal(userId) {
             const container = document.getElementById('modal-clients-list'); container.innerHTML = "";
             db.ref('users/' + userId + '/allowedClients').once('value', snap => {
@@ -339,7 +393,22 @@
         function adminAddClient() { const n = document.getElementById('admin-new-client').value; if(n) db.ref('clients').push(n).then(()=>document.getElementById('admin-new-client').value=""); }
         function adminAddPart() { const r = document.getElementById('cat-new-ref').value, l = document.getElementById('cat-new-label').value; if(r && l) db.ref('catalog/'+r).set({label:l}).then(()=>{document.getElementById('cat-new-ref').value="";document.getElementById('cat-new-label').value="";}); }
         function resetForm() { document.getElementById('f-int-id').value = ""; document.getElementById('parts-container').innerHTML = ""; document.getElementById('btn-save-main').innerText = I18N[currentLang].btn_save; document.getElementById('btn-cancel-edit').style.display = 'none'; document.getElementById('f-int-notes').value=""; }
-        function exportToPDF() { const el = document.getElementById('export-area'), h = el.querySelectorAll('button, select, .no-pdf'); h.forEach(x => x.style.display = 'none'); html2pdf().from(el).set({ margin: 5, filename: 'Drager_Report.pdf' }).save().then(() => h.forEach(x => x.style.display = '')); }
+        function exportToPDF() { const el = document.getElementById('export-area'), h = el.querySelectorAll('button, select, input, .no-pdf'); h.forEach(x => x.style.display = 'none'); html2pdf().from(el).set({ margin: 5, filename: 'Drager_Report.pdf' }).save().then(() => h.forEach(x => x.style.display = '')); }
+        
+        function exportToCSV() {
+            let csvContent = "data:text/csv;charset=utf-8,Date;Client;Debut;Fin;Appareils;Notes\n";
+            rawData.forEach(([id, int]) => {
+                csvContent += `${int.date};${int.client};${int.start};${int.end};${int.devices};"${int.notes || ''}"\n`;
+            });
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "Drager_Report.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
         function toggleDarkMode() { document.body.classList.toggle('dark-mode'); }
     </script>
 </body>
